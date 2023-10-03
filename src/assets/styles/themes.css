@@ -1,0 +1,121 @@
+:root {
+    --color-background-primary: #fff;
+    --color-background-secondary: #f5f5f5;
+    --color-accent: #2196f3;
+    --color-border: #e0e0e0;
+    --color-text-primary: #212121;
+}
+
+/* Variables para el tema darkbackgroundGradient */
+[data-theme="darkbackgroundGradient"] {
+    --background-gradient: linear-gradient(to bottom, #0a0a0a, #383737);
+}
+
+/* Variables para el tema darkMainRouterLink */
+[data-theme="darkMainRouterLink"] {
+    --cards-climateBackgroundColor: linear-gradient(to bottom, #0f0f0f , #1c1b1c);
+    --detailInfoBackground: rgba(0, 0, 0, 0.8);
+    --colorDetailInfo: rgb(255, 255, 255);
+    --detailCommon: red;
+    --backgroundInfoPanelWeekend: rgba(36, 36, 36, 0.67);
+    --borderColorInfoPanelWeekend: white;
+    --textColorInfoPanelWeekend: white;
+    --colorInfoContentWeekendInside: white;
+    --infoContentWeekendInsideBackgroundColorHover: blue;
+}
+
+/* Variables para el tema darkBannerWeather */
+[data-theme="darkBannerWeather"] {
+    --navbarBackgroundColor: linear-gradient(to right, #000, #000 17%, #171617 35%, #1c1b1c 60%, #242224 100%);
+    --navbarTextColor: white;
+    --modalBackgroundColor: black;
+    --borderModal: white;
+    --buttonMenuBackgroundColor: white;
+    --modalTextColor: white;
+    --buttonMenuTextColor: rebeccapurple;
+    --buttonMenuColor: white;
+    --background-colorInfoContentWeekendInside: black;
+    
+}
+
+/* Variables para el tema darkCittySearch */
+[data-theme="darkCittySearch"] {
+    --white: white;
+    --citiesContainerBackgroundColor: black;
+    --backgroundInput: black;
+    --colorInput: white;
+}
+
+/* Variables para el tema darkPremiumSubscriptionModal */
+[data-theme="darkPremiumSubscriptionModal"] {
+    --modalColor: white;
+    --modalBackgroundColor: black;
+}
+
+/* Variables para el tema darkOptionsWeather */
+[data-theme="darkOptionsWeather"] {
+    --white: white;
+    --background: black;
+}
+
+/* Variables para el tema darkMainFooter */
+[data-theme="darkMainFooter"] {
+    --footerBackgroundColor: black;
+  --footerTextColor: white;
+}
+
+
+/* Variables para el tema lightBannerWeather */
+[data-theme="lightBannerWeather"] {
+    --navbarBackgroundColor: linear-gradient(to right, white, white 17%, #9fc2a4 35%, #35d4af 60%, #3597d4 100%);
+    --navbarTextColor: black;
+    --modalBackgroundColor: white;
+    --borderModal: black;
+   --buttonMenuBackgroundColor: black;
+   --modalTextColor: black;
+   --buttonMenuTextColor: rebeccapurple;
+    --buttonMenuColor: black;
+}
+
+/* Variables para el tema lightCittySearch */
+[data-theme="lightCittySearch"] {
+    --white: rgb(0, 0, 0);
+    --citiesContainerBackgroundColor: rgb(255, 255, 255);
+    --backgroundInput: white;
+    --colorInput: black;
+}
+
+/* Variables para el tema lightPremiumSubscriptionModal */
+[data-theme="lightPremiumSubscriptionModal"] {
+    --modalColor: black;
+    --modalBackgroundColor: white;
+}
+
+/* Variables para el tema lightOptionsWeather */
+[data-theme="lightOptionsWeather"] {
+    --white: black;
+    --background: #aeaeae;
+}
+
+/* Variables para el tema lightMainFooter */
+[data-theme="lightMainFooter"] {
+    --footerBackgroundColor: #8a8a8a;;
+    --footerTextColor: black;
+}
+
+[data-theme="lightbackgroundGradient"] {
+    --background-gradient: linear-gradient(to bottom, #70b89b, #ffffff);
+}
+
+[data-theme="lightMainRouterLink"] {
+    --cards-climateBackgroundColor: linear-gradient(to bottom, #5b7d61 , #b5ebbe);
+    --detailInfoBackground: rgba(255, 255, 255, 0.8);
+    --colorDetailInfo: rgb(0, 0, 0);
+    --detailCommon: rgb(252, 99, 99);
+    --backgroundInfoPanelWeekend: rgb(158, 158, 158);
+    --borderColorInfoPanelWeekend: rgba(36, 36, 36, 0.67);
+    --textColorInfoPanelWeekend: black;
+    --background-colorInfoContentWeekendInside: white;
+    --colorInfoContentWeekendInside: black;
+    --infoContentWeekendInsideBackgroundColorHover: rgb(248, 68, 68);
+}

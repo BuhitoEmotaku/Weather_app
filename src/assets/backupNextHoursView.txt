@@ -1,0 +1,164 @@
+<template>
+  <div v-if="bool">
+    <main class="region-main">
+      <section :class="['cards-climate', backgroundImageClass]">
+        <div class="cityRegion">
+          <div class="currentConditionHeader">
+            <h2>{{ cityDataRef.name }} - {{ cityDataRef.country }} / <span class="currentConditionTimestamp">
+                {{ currentTime.hour }}:{{ currentTime.minute }} {{ currentTime.ampm }}
+              </span></h2>
+          </div>
+        </div>
+        <div class="basicWeatherData">
+          <div class="infoCurrentWeather">
+            <span class="currentTemperature">{{ cityValuesRef.current_weather.temperature }}</span>
+            <span class="temperatureStatus"><b>{{ weatherCode }} </b></span>
+            <span class="maxMin"><b>Max {{ cityValuesRef.daily.temperature_2m_max[0] }} </b>&nbsp;<b> Min {{
+              cityValuesRef.daily.temperature_2m_min[0] }}</b></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="cards-climate weatherPreciseData">
+        <div class="cityRegion">
+          <div class="currentConditionHeader">
+            <h2>Tiempo detallado en {{ cityDataRef.name }} - {{ cityDataRef.country }}</h2>
+          </div>
+        </div>
+        <div class="basicWeatherData">
+          <div class="infoCurrentWeather spaceCorrection">
+            <div class="sunRiseSetImgTemperatureSensation">
+              <div class="temperatureSensationContainer">
+                <span>Sensación Térmica</span>
+                <b class="temperatureSensation">{{ cityValuesRef.hourly.apparent_temperature[hours] }}</b>
+              </div>
+              <div class="sunsetSunrise"><img class="sunRiseSetImg"
+                  src="@/assets/images/basicActualWeather/sunriseSunset.png" alt="imgSunriseSunset">
+                <div class="sunsetSunrisetHours">
+                  <span><b>{{ sunriseTime }}</b></span>
+                  <span><b> {{ sunsetTime }}</b></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="detailInfoContainer">
+              <div class="detailInfo">
+                asdas
+              </div>
+              <div class="detailInfo">
+                sdfsdf
+              </div>
+            </div>
+            <h1><router-link class="goDetails" to="/about">Ver más</router-link></h1>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, onBeforeUnmount, onMounted } from "vue";
+import { useCityData } from '@/assets/modulosTS/getDataCity';
+import { weatherCodes } from '@/assets/modulosTS/weatherCodes';
+
+export default defineComponent({
+  name: 'NextHoursView',
+
+  setup() {
+    const cityDataRef = ref<any>(null);
+    const bool = ref(false);
+    const cityValuesRef = ref<any>({});
+    const cityDataString = localStorage.getItem('cityData');
+    const currentTime = ref({ hour: 0, minute: '00', ampm: 'AM' });
+    const sunriseTime = ref('');
+    const sunsetTime = ref('');
+    const weatherCode = ref('');
+    const backgroundImageClass = ref('');
+    const hours = ref(0);
+
+    const handleLocalStorageChange = async () => {
+      try {
+        const { cityData, cityValues } = await useCityData() as {
+          cityValues: any;
+          cityData: any;
+        };
+        cityDataRef.value = cityData.value;
+        cityValuesRef.value = cityValues._value.data;
+        bool.value = true;
+        formatHour(cityValuesRef.value.current_weather.time);
+      updateSunriseSunsetTimes();
+      } catch (error) {
+        console.error('Error al obtener los datos de la ciudad:', error);
+      }
+    };
+
+    window.addEventListener('localStorageChanged', handleLocalStorageChange);
+
+    onBeforeUnmount(() => {
+      window.removeEventListener("localStorageChanged", handleLocalStorageChange);
+    });
+
+    onMounted(() => {
+      handleLocalStorageChange();
+      
+    });
+
+    const formatHour = (dateTimeString: any, mainLogic = true) => {
+      const dateTime = new Date(dateTimeString);
+      const hour = parseInt(dateTime.getHours().toString(), 10);
+      console.log(hour)
+      const minute = dateTime.getMinutes().toString().padStart(2, '0');
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      //const formattedHour = hour === 0 ? '12' : (hour % 12).toString().padStart(2, '0');
+
+      if (mainLogic) {
+        if (hour >= 8 && hour < 20) {
+          backgroundImageClass.value = 'backgroundDay';
+        } else if (hour >= 21 || hour < 6) {
+          backgroundImageClass.value = 'backgroundNight';
+        } else if (hour >= 6 && hour < 8) {
+          backgroundImageClass.value = 'backgroundSunrise';
+        } else if (hour >= 20 && hour < 21) {
+          backgroundImageClass.value = 'backgroundSunset';
+        }
+        weatherCode.value = WeatherDescription();
+      }
+      
+      currentTime.value = { hour, minute, ampm };
+      return { hour, minute, ampm }
+    };
+
+    const WeatherDescription = () => {
+      const matchingCode = weatherCodes.find(item => item.code.includes(cityValuesRef.value.current_weather.weathercode));
+      return matchingCode ? matchingCode.description : 'Código meteorológico no encontrado';
+    };
+
+    const formatHourMeth = (dateTimeString: any) => {
+      const formattedTime = formatHour(dateTimeString, false);
+      return `${formattedTime.hour}:${formattedTime.minute}`;
+    };
+
+    const updateSunriseSunsetTimes = () => {
+  sunriseTime.value = formatHourMeth(cityValuesRef.value.daily.sunrise[0]);
+  sunsetTime.value = formatHourMeth(cityValuesRef.value.daily.sunset[0]);
+};
+
+    return {
+      cityDataRef,
+      cityValuesRef,
+      bool,
+      currentTime,
+      sunriseTime,
+      sunsetTime,
+      weatherCode,
+      backgroundImageClass,
+      hours,
+      formatHour,
+      formatHourMeth,
+      updateSunriseSunsetTimes
+    };
+  },
+});
+</script>

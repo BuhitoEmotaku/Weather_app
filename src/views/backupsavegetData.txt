@@ -1,0 +1,335 @@
+<template>
+  <div>
+    <h1>Detalles de la Ciudad</h1>
+    <p>Nombre: {{ cityData.name }}</p>
+    <p>País: {{ cityData.country }}</p>
+    <p>Latitud: {{ cityData.latitude }}</p>
+    <p>Longitud: {{ cityData.longitude }}</p>
+    <p>Elevación: {{ cityData.elevation }}</p>
+    <h1>{{ cityValues }}</h1>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, computed, watch } from "vue";
+import CryptoJS from 'crypto-js';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
+import { useCityData } from '@/assets/modulosTS/getDataCity'; // Asegúrate de que la ruta sea correcta ;
+
+export default defineComponent({
+  name: 'NextHoursView',
+
+  setup() {
+    const route = useRoute();
+    const cityValues = ref<any>();
+    let ipAddress = "";
+    const cityData = ref<any>({});
+
+
+
+    // Función para desencriptar datos
+    const decryptData = (encryptedData: string) => {
+      try {
+        const bytes = CryptoJS.AES.decrypt(encryptedData, 'cityDataUP');
+        const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+        return decryptedData;
+      } catch (error) {
+        // console.error('Ciudad no existente');
+        return null; // Retorna null si la descifrado falla
+      }
+    };
+
+    const fetchData = async (decryptedData: any) => {
+      try {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${decryptedData.latitude}&longitude=${decryptedData.longitude}1&hourly=temperature_2m,relativehumidity_2m,apparent_temperature,precipitation_probability,rain,snowfall,snow_depth,visibility,temperature_1000hPa,relativehumidity_1000hPa,cloudcover_1000hPa,windspeed_1000hPa,winddirection_1000hPa,geopotential_height_1000hPa&current_weather=true&timezone=auto`, {
+          method: "GET",
+          headers: {},
+        });
+
+        const data = await response.json();
+
+        // Asignar los valores a cityValues
+        cityValues.value = data;
+        if (!route.query.data) {
+          // Cambiar los valores de cityData después de obtener cityValues
+          cityData.value.name = cityData.value.regionName;
+          cityData.value.country = cityData.value.countryName;
+          cityData.value.latitude = cityValues.value.latitude;
+          cityData.value.longitude = cityValues.value.longitude;
+          cityData.value.elevation = cityValues.value.elevation;
+        }
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+
+
+
+
+
+    // Usando una solicitud a un servicio de terceros
+    fetch('https://api64.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        ipAddress = data.ip;
+      })
+      .catch(error => {
+        console.error('Error al obtener la dirección IP:', error);
+      });
+    // Define la dirección IP que deseas consultar
+
+    const url = `https://freeipapi.com/api/json/${ipAddress}`; // para obtener información de una IP específica
+
+    // Realizar la solicitud HTTP usando axios
+    if(!route.query.data){
+      axios.get(url)
+      .then(response => {
+        const data = response.data;
+        fetchData(data);
+        cityData.value = data;
+
+        console.log(cityData.value);
+
+
+      })
+      .catch(error => {
+        console.error(error);
+      });
+
+    }
+    
+
+
+
+
+
+
+
+
+
+
+    // Definimos un computed para obtener el valor del parámetro "data" de la URL
+const dataValue = computed(() => route.query.data as string);
+
+// Función para manejar cambios en la query
+const handleQueryChange = async (encryptedData: string) => {
+  const decryptedData = decryptData(encryptedData);
+  if (decryptedData) {
+    // Si se descifra correctamente, actualiza cityData
+    cityData.value = decryptedData;
+
+    // Si se descifra correctamente, actualiza cityData
+    fetchData(decryptedData);
+  } else {
+    // Si la descifrado falla, establece un valor predeterminado
+    console.warn('Ciudad de búsqueda no existente');
+    // Puedes establecer los valores predeterminados aquí
+  }
+};
+
+// Llamamos a handleQueryChange al cargar la página inicialmente
+handleQueryChange(dataValue.value);
+
+// Creamos un watcher para detectar cambios en dataValue y llamar a la función de manejo
+watch(dataValue, handleQueryChange);
+    return {
+      cityData,
+      cityValues
+    };
+  },
+});
+</script>
+
+
+
+
+
+<template>
+  <div v-if="bool">
+    <main class="region-main">
+      <section :class="['cards-climate', backgroundImageClass]">
+        <div class="cityRegion">
+          <div class="currentConditionHeader">
+            <h2>{{ cityDataRef.name }} - {{ cityDataRef.country }} / <span class="currentConditionTimestamp">
+                {{ formatHour(cityValuesRef.current_weather.time).hour }}:{{
+                  formatHour(cityValuesRef.current_weather.time).minute }}
+                {{ formatHour(cityValuesRef.current_weather.time).ampm }}
+              </span></h2>
+          </div>
+
+        </div>
+        <div class="basicWeatherData">
+          <div class="infoCurrentWeather">
+            <span class="currentTemperature">{{ cityValuesRef.current_weather.temperature }}</span>
+
+            <span class="temperatureStatus"><b>{{ weatherCode }} </b></span>
+            <span class="maxMin"><b>Max {{ cityValuesRef.daily.temperature_2m_max[0] }} </b>&nbsp;<b> Min {{
+              cityValuesRef.daily.temperature_2m_min[0] }}</b></span>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="cards-climate weatherPreciseData">
+        <div class="cityRegion">
+          <div class="currentConditionHeader">
+            <h2>Tiempo detallado en {{ cityDataRef.name }} - {{ cityDataRef.country }}</h2>
+          </div>
+
+        </div>
+        <div class="basicWeatherData">
+          <div class="infoCurrentWeather spaceCorrection">
+            <div class="sunRiseSetImgTemperatureSensation">
+              <div class="temperatureSensationContainer">
+
+                <span>Sensación Térmica</span>
+                <b class="temperatureSensation">{{ cityValuesRef.hourly.apparent_temperature[hours] }}</b>
+              </div>
+              <div class="sunsetSunrise"><img class="sunRiseSetImg"
+                  src="@/assets/images/basicActualWeather/sunriseSunset.png" alt="imgSunriseSunset">
+
+                <div class="sunsetSunrisetHours">
+                  <span><b>{{ formatHourMeth(cityValuesRef.daily.sunrise[0]) }}</b></span>
+                  <span><b> {{ formatHourMeth(cityValuesRef.daily.sunset[0]) }}</b></span>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="detailInfoContainer">
+              <div class="detailInfo">
+                asdas
+              </div>
+              <div class="detailInfo">
+                sdfsdf
+              </div>
+            </div>
+            <h1><router-link class="goDetails" to="/about">Ver más</router-link></h1>
+
+
+
+
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref, onBeforeUnmount, onMounted, computed } from "vue";
+import { useCityData } from '@/assets/modulosTS/getDataCity';
+import { weatherCodes } from '@/assets/modulosTS/weatherCodes';
+export default defineComponent({
+  name: 'NextHoursView',
+
+  setup() {
+    // Define cityData y cityValues como refs con valor inicial null
+    const cityDataRef = ref<any>(0);
+    const bool = ref<any>(false);
+    const cityValuesRef = ref<any>({});
+    const cityDataString = localStorage.getItem('cityData');
+
+    // Función para manejar el cambio en localStorage
+    const handleLocalStorageChange = async () => {
+
+      try {
+        const { cityData, cityValues } = await useCityData() as {
+          cityValues: any;
+          cityData: any;
+        };
+        cityDataRef.value = cityData.value;
+        cityValuesRef.value = cityValues._value.data;
+        bool.value = true;
+      } catch (error) {
+        console.error('Error al obtener los datos de la ciudad:', error);
+      }
+
+    };
+
+    window.addEventListener('localStorageChanged', handleLocalStorageChange);
+
+
+    // Opcional: puedes usar el hook beforeUnmount para ejecutar removeListener
+    onBeforeUnmount(() => {
+      window.removeEventListener("localStorageChanged", handleLocalStorageChange);
+    });
+
+    // Ejecuta handleLocalStorageChange al inicio de la carga de la página
+    onMounted(() => {
+      handleLocalStorageChange();
+    });
+
+    let weatherCode = ref<any>(); // Variable para el code del weather
+    let backgroundImageClass = ref<any>(); // Variable para la URL de fondo
+    // Función para formatear la hora en formato AM/PM
+    let hours = ref<any>(0); //
+
+
+
+    const formatHour = (dateTimeString: any, mainLogic = true) => {
+      const dateTime = new Date(dateTimeString);
+      const hour = parseInt(dateTime.getHours().toString(), 10);
+      hours.value = hour;
+      const minute = dateTime.getMinutes().toString().padStart(2, '0');
+      const ampm = hour >= 12 ? 'PM' : 'AM';
+      //const formattedHour = hour === 0 ? '12' : (hour % 12).toString().padStart(2, '0');
+
+
+
+      const WeatherDescription = () => {
+        // Busca el código meteorológico en el arreglo weatherCodes
+        const matchingCode = weatherCodes.find(item => item.code.includes(cityValuesRef.value.current_weather.weathercode));
+        console.log(matchingCode?.description)
+        // Si se encontró una coincidencia, devuelve la descripción, de lo contrario, devuelve un mensaje de error o lo que desees
+        return matchingCode ? matchingCode.description : 'Código meteorológico no encontrado';
+      };
+
+      if (mainLogic) {
+        if (hour >= 8 && hour < 20) {
+          // Durante el día (de 8 AM a 8 PM)
+          backgroundImageClass.value = 'backgroundDay'
+        } else if (hour >= 21 || hour < 6) {
+          // Durante la noche (de 9 PM a 6 AM)
+          backgroundImageClass.value = 'backgroundNight'
+        }
+        else if (hour >= 6 && hour < 8) {
+          // Durante el amanecer (de 6 AM a 8 AM)
+          backgroundImageClass.value = 'backgroundSunrise'
+        }
+        else if (hour >= 20 && hour < 21) {
+          // Durante el anochecer (de 8 PM a 9 PM)
+          backgroundImageClass.value = 'backgroundSunset'
+        }
+        weatherCode.value = WeatherDescription(); // Variable para el code del weather
+      }
+      return { hour, minute, ampm, backgroundImageClass };
+
+    };
+
+    const formatHourMeth = (dateTimeString: any) => {
+      const formattedTime = formatHour(dateTimeString, false);
+      // You can use 'hour', 'minute', and 'ampm' here if needed.
+      return `${formattedTime.hour}:${formattedTime.minute}`
+    };
+
+
+
+    return {
+      cityDataRef,
+      cityValuesRef,
+      bool,
+      formatHour,
+      backgroundImageClass,
+      weatherCode,
+      hours,
+      formatHourMeth
+    };
+  },
+});
+</script>

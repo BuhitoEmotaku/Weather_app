@@ -1,0 +1,6 @@
+
+/* Crear fuentes desde archivos */
+@font-face {
+    font-family: "Pavanam";
+    src: url("../fonts/Pavanam-Regular.ttf") format("truetype");
+}
